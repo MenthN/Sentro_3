@@ -9,10 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; background: #1A1C24; font-family: Inter, Roboto, system-ui, -apple-system, sans-serif; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #0A231C; font-family: Inter, Roboto, system-ui, -apple-system, sans-serif; }
   #root { height: 100%; }
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-thumb { background: #3a3d4a; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: #144A3E; border-radius: 3px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .animate-spin { animation: spin 1s linear infinite; }
   .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -67,16 +67,19 @@ const GoogleIcon = ({ size = 18 }) => (
 );
 
 /* ------------------------------------------------------------------ */
-/*  Theme                                                              */
+/*  Theme Configuration (Green & Yellow Marketplace Ecosystem)         */
 /* ------------------------------------------------------------------ */
 const C = {
-  bg: "#1A1C24",
-  bgSoft: "#22242E",
-  primary: "#4B39EF",
-  success: "#249689",
-  green: "#8BC34A",
-  greenBg: "#F1F8E9",
-  greenText: "#33691E",
+  bg: "#0A231C",          // Deep forest background canvas
+  bgSoft: "#123A2F",      // Soft green container surfaces
+  primary: "#16A34A",     // Vibrant Emerald Green for primary interactions
+  accent: "#EAB308",      // Warm Sunflower Yellow for special highlights
+  success: "#10B981",     // Clean feedback green
+  green: "#22C55E",
+  greenBg: "#DCFCE7",
+  greenText: "#15803D",
+  yellowBg: "#FEF9C3",
+  yellowText: "#854D0E"
 };
 
 /* ------------------------------------------------------------------ */
@@ -119,7 +122,7 @@ const mockFirebase = {
   saveProfile: (uid, data) =>
     new Promise((resolve) =>
       setTimeout(() => {
-        console.log(`[mockFirebase] firestore.set users/${uid}/ →`, data);
+        console.log(`[mockFirebase] firestore.set users/${uid}/ toggle →`, data);
         resolve({ path: `users/${uid}/`, ...data });
       }, 1100)
     ),
@@ -131,9 +134,9 @@ const mockFirebase = {
 const CATEGORIES = ["All", "Books", "Tech", "Supplies"];
 
 const CAT_STYLE = {
-  Books: { emoji: "📚", grad: "linear-gradient(135deg,#667eea,#764ba2)" },
-  Tech: { emoji: "💻", grad: "linear-gradient(135deg,#4B39EF,#8b5cf6)" },
-  Supplies: { emoji: "📦", grad: "linear-gradient(135deg,#249689,#34d399)" },
+  Books: { emoji: "📚", grad: "linear-gradient(135deg, #EAB308, #CA8A04)" }, // Yellow spectrum
+  Tech: { emoji: "💻", grad: "linear-gradient(135deg, #16A34A, #10B981)" },  // Green spectrum
+  Supplies: { emoji: "📦", grad: "linear-gradient(135deg, #0D9488, #14B8A6)" }, // Teal spectrum
 };
 
 const SEED_LISTINGS = [
@@ -151,7 +154,7 @@ const SEED_CONVERSATIONS = [
     name: "Maria Santos",
     item: "Calculus: Early Transcendentals (8th Ed.)",
     avatar: "MS",
-    color: "#8b5cf6",
+    color: "#16A34A",
     messages: [
       { id: 1, from: "them", text: "Hi! Yes, the Calculus book is still available 😊", time: "10:12 AM" },
       { id: 2, from: "me", text: "Great! Can we meet at the library tomorrow around 3pm?", time: "10:15 AM" },
@@ -163,7 +166,7 @@ const SEED_CONVERSATIONS = [
     name: "Kevin Tan",
     item: "Dorm Starter Pack (Hangers, Bins, Lamp)",
     avatar: "KT",
-    color: "#249689",
+    color: "#EAB308",
     messages: [
       { id: 1, from: "me", text: "Hello! Is the lamp still working well?", time: "Yesterday" },
       { id: 2, from: "them", text: "Yup! Barely used it, mostly studied at the caf 😅", time: "Yesterday" },
@@ -255,7 +258,7 @@ function Logo({ size = 44 }) {
   return (
     <div
       className="rounded-2xl flex items-center justify-center font-black text-white shadow-lg mx-auto"
-      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, #8b5cf6)`, fontSize: size * 0.5 }}
+      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`, fontSize: size * 0.5 }}
     >
       S
     </div>
@@ -291,14 +294,14 @@ function SignUpScreen({ onCreated, onSwitchToSignIn }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (loading || success) return; // race-condition guard
+    if (loading || success) return;
     if (!validate()) return;
     setLoading(true);
     try {
       const user = await mockFirebase.createUserWithEmail(form.email);
       setLoading(false);
       setSuccess(true);
-      setTimeout(() => onCreated(user), 900); // smooth transition
+      setTimeout(() => onCreated(user), 900);
     } catch (err) {
       setLoading(false);
       setErrors({ global: "Something went wrong. Please try again." });
@@ -372,7 +375,7 @@ function SignInScreen({ onSignedIn, onSwitchToSignUp }) {
 
   const submit = (e) => {
     e.preventDefault();
-    if (loading || success) return; // race-condition guard
+    if (loading || success) return;
     if (!validate()) return;
     setLoading(true);
     setTimeout(() => {
@@ -484,7 +487,7 @@ function ProfileSetupScreen({ user, onComplete }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (loading || success) return; // race-condition guard
+    if (loading || success) return;
     if (!validate()) return;
     setLoading(true);
     try {
@@ -508,7 +511,7 @@ function ProfileSetupScreen({ user, onComplete }) {
     <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ backgroundColor: C.bg }}>
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#EEF2FF" }}>
+          <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#F0FDF4" }}>
             <GraduationCap size={26} style={{ color: C.primary }} />
           </div>
           <h1 className="text-2xl font-extrabold text-gray-900 mt-4 mb-0">Verify Account</h1>
@@ -542,7 +545,7 @@ function ProfileSetupScreen({ user, onComplete }) {
               className="w-full rounded-xl border-2 border-dashed py-6 px-4 flex flex-col items-center gap-2 transition-all cursor-pointer"
               style={{
                 borderColor: errors.file ? "#f87171" : dragOver || file ? C.primary : "#d1d5db",
-                backgroundColor: dragOver ? "#EEF2FF" : file ? "#F5F3FF" : "#fafafa",
+                backgroundColor: dragOver ? "#F0FDF4" : file ? "#FEF9C3" : "#fafafa",
               }}
             >
               {file ? (
@@ -748,7 +751,7 @@ function ListingDetail({ listing, onBack, onMessage, onBuyNow, isOwn }) {
             <button
               onClick={onBuyNow}
               className="w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all border-0 cursor-pointer"
-              style={{ backgroundColor: C.primary }}
+              style={{ backgroundColor: C.accent, color: "#111" }}
             >
               <ShieldCheck size={18} />
               Buy Now · Pay via Escrow
@@ -776,7 +779,7 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
   const [walletNumber, setWalletNumber] = useState("");
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "" });
   const [errors, setErrors] = useState({});
-  const [step, setStep] = useState("select"); // select | processing | success
+  const [step, setStep] = useState("select");
   const [txn, setTxn] = useState(null);
 
   const price = Number(listing.price);
@@ -884,7 +887,7 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
                     type="button"
                     onClick={() => { setMethod(m.id); setErrors({}); }}
                     className="text-left p-3 rounded-xl border-2 transition-all bg-white cursor-pointer"
-                    style={{ borderColor: active ? C.primary : "#e5e7eb", backgroundColor: active ? "#EEF2FF" : "#fff" }}
+                    style={{ borderColor: active ? C.primary : "#e5e7eb", backgroundColor: active ? "#F0FDF4" : "#fff" }}
                   >
                     <m.Icon size={18} style={{ color: active ? C.primary : "#6b7280" }} />
                     <p className="text-xs font-bold text-gray-800 mt-1.5 mb-0">{m.label}</p>
@@ -948,7 +951,7 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
 
         {step === "success" && txn && (
           <div className="text-center py-2">
-            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ backgroundColor: C.green }}>
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ backgroundColor: C.primary }}>
               <CheckCircle2 size={32} style={{ color: "#fff" }} />
             </div>
             <h3 className="text-lg font-extrabold text-gray-900 mt-4 mb-1">Payment Successful!</h3>
@@ -999,10 +1002,13 @@ function SellerDashboard({ transactions, onConfirm }) {
                 </div>
                 <span
                   className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1"
-                  style={{ backgroundColor: t.status === "held" ? C.greenBg : "#EEF2FF", color: t.status === "held" ? C.greenText : C.primary }}
+                  style={{
+                    backgroundColor: t.status === "held" ? C.yellowBg : C.greenBg,
+                    color: t.status === "held" ? t.status === "held" ? C.yellowText : C.greenText : C.greenText
+                  }}
                 >
                   <BadgeCheck size={11} />
-                  {t.status === "held" ? "Payment Verified - Held by Sentro" : "Funds Released"}
+                  {t.status === "held" ? "Payment Held Securely" : "Funds Released"}
                 </span>
               </div>
 
@@ -1216,7 +1222,7 @@ function ChatThread({ conversation, onBack, onSend }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderBottom: "1px solid #2e3140" }}>
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderBottom: "1px solid #144A3E" }}>
         <button onClick={onBack} className="text-gray-300 p-1 bg-transparent border-0 cursor-pointer" aria-label="Back"><ArrowLeft size={20} /></button>
         <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: conversation.color }}>
           {conversation.avatar}
@@ -1248,7 +1254,7 @@ function ChatThread({ conversation, onBack, onSend }) {
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={send} className="flex items-center gap-2 px-3 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #2e3140" }}>
+      <form onSubmit={send} className="flex items-center gap-2 px-3 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #144A3E" }}>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -1279,7 +1285,7 @@ function ProfileScreen({ user, profile, myListings, onSignOut }) {
       <h1 className="text-white font-extrabold text-xl mb-4 mt-0">Profile</h1>
 
       <div className="bg-white rounded-2xl shadow-xl p-6 text-center max-w-lg mx-auto">
-        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-extrabold" style={{ background: `linear-gradient(135deg, ${C.primary}, #8b5cf6)` }}>
+        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-extrabold" style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.accent})` }}>
           {profile.fullName.split(" ").map((w) => w[0]).slice(0, 2).join("")}
         </div>
         <h2 className="text-lg font-extrabold text-gray-900 mt-3 mb-0 flex items-center justify-center gap-1.5">
@@ -1302,12 +1308,12 @@ function ProfileScreen({ user, profile, myListings, onSignOut }) {
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-xl p-3" style={{ backgroundColor: "#EEF2FF" }}>
+          <div className="rounded-xl p-3" style={{ backgroundColor: "#F0FDF4" }}>
             <p className="text-xl font-extrabold m-0" style={{ color: C.primary }}>{myListings.length}</p>
             <p className="text-[11px] font-semibold text-gray-500 m-0">Active Listings</p>
           </div>
-          <div className="rounded-xl p-3" style={{ backgroundColor: "#E6F7F4" }}>
-            <p className="text-xl font-extrabold m-0" style={{ color: C.success }}>100%</p>
+          <div className="rounded-xl p-3" style={{ backgroundColor: "#FEF9C3" }}>
+            <p className="text-xl font-extrabold m-0" style={{ color: C.yellowText }}>100%</p>
             <p className="text-[11px] font-semibold text-gray-500 m-0">Trust Score</p>
           </div>
         </div>
@@ -1335,7 +1341,7 @@ function BottomNav({ tab, setTab }) {
     { id: "profile", label: "Profile", Icon: UserIcon },
   ];
   return (
-    <nav className="shrink-0 flex" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #2e3140" }}>
+    <nav className="shrink-0 flex" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #144A3E" }}>
       {items.map(({ id, label, Icon }) => {
         const active = tab === id;
         return (
@@ -1343,7 +1349,7 @@ function BottomNav({ tab, setTab }) {
             key={id}
             onClick={() => setTab(id)}
             className="flex-1 py-2.5 pb-3 flex flex-col items-center gap-0.5 transition-colors bg-transparent border-0 cursor-pointer"
-            style={{ color: active ? C.primary : "#6b7280" }}
+            style={{ color: active ? C.accent : "#6b7280" }}
           >
             <Icon size={21} />
             <span className="text-[10px] font-bold">{label}</span>
@@ -1358,7 +1364,7 @@ function BottomNav({ tab, setTab }) {
 /*  Root App                                                           */
 /* ------------------------------------------------------------------ */
 function SentroApp() {
-  const [stage, setStage] = useState("signin"); // signin ⇄ signup → onboarding → app
+  const [stage, setStage] = useState("signin");
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -1416,7 +1422,7 @@ function SentroApp() {
     } else {
       idRef.current += 1;
       chatId = idRef.current;
-      const colors = ["#8b5cf6", "#249689", "#f59e0b", "#ec4899", "#3b82f6"];
+      const colors = ["#16A34A", "#10B981", "#EAB308", "#0D9488", "#22C55E"];
       setConversations((cs) => [
         {
           id: chatId,
@@ -1504,7 +1510,7 @@ function SentroApp() {
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] px-4 w-full max-w-sm">
           <div
             className="rounded-xl shadow-2xl px-4 py-3.5 flex items-center gap-3 text-sm font-semibold"
-            style={{ backgroundColor: "#fff", border: `2px solid ${C.green}`, color: C.greenText }}
+            style={{ backgroundColor: "#fff", border: `2px solid ${C.primary}`, color: C.greenText }}
           >
             <CheckCircle2 size={18} style={{ color: C.green }} className="shrink-0" />
             <span>{toast}</span>
