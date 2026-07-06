@@ -83,15 +83,28 @@ const C = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Helper Functions                                                   */
+/* ------------------------------------------------------------------ */
+// Formats a full name to "First Name + Last Initial" (e.g., Ana Reyes -> Ana R.)
+const formatName = (fullName) => {
+  if (!fullName) return "";
+  const parts = fullName.trim().split(" ");
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[1].charAt(0)}.`;
+};
+
+/* ------------------------------------------------------------------ */
 /*  Payment methods & escrow constants                                 */
 /* ------------------------------------------------------------------ */
+// Logic update: Removed Credit/Debit Card Option
 const PAYMENT_METHODS = [
   { id: "gcash", label: "GCash", sub: "Pay via GCash e-wallet", Icon: WalletIcon, wallet: true },
   { id: "maya", label: "Maya", sub: "Pay via Maya e-wallet", Icon: SmartphoneIcon, wallet: true },
-  { id: "card", label: "Credit/Debit Card", sub: "Visa, Mastercard, etc.", Icon: CreditCardIcon, card: true },
 ];
 const COMMISSION_RATE = 0.05;
-const MOCK_BUYER_NAMES = ["Andrea Villanueva", "Miguel Ramos", "Carla Aquino", "Diego Fernandez", "Bea Mercado"];
+
+// Mock data logic update: Applied formatName logic to seed data
+const MOCK_BUYER_NAMES = ["Andrea Villanueva", "Miguel Ramos", "Carla Aquino", "Diego Fernandez", "Bea Mercado"].map(formatName);
 const MOCK_SIGNIN_PROFILE = {
   fullName: "Juan Dela Cruz",
   phone: "09171234567",
@@ -139,19 +152,20 @@ const CAT_STYLE = {
   Supplies: { emoji: "📦", grad: "linear-gradient(135deg, #0D9488, #14B8A6)" }, // Teal spectrum
 };
 
+// Seed data sellers formatted
 const SEED_LISTINGS = [
-  { id: 1, title: "Calculus: Early Transcendentals (8th Ed.)", price: 450, condition: "Used", category: "Books", emoji: "📘", seller: "Maria Santos", verified: true, description: "Lightly highlighted, no missing pages. Perfect for Math 21. Meet-up at the main library." },
-  { id: 2, title: "Casio FX-991EX Scientific Calculator", price: 850, condition: "Used", category: "Tech", emoji: "🧮", seller: "Jico Dela Cruz", verified: true, description: "Fully working, solar + battery. Selling because I graduated. Includes slide cover." },
-  { id: 3, title: "Mini Desk Fan (USB)", price: 250, condition: "New", category: "Supplies", emoji: "🌀", seller: "Ana Reyes", verified: true, description: "Brand new, still sealed. Got two as gifts. Great for dorm rooms without AC." },
-  { id: 4, title: "Organic Chemistry Study Set + Flashcards", price: 300, condition: "Used", category: "Books", emoji: "🧪", seller: "Paolo Lim", verified: true, description: "Complete reviewer set for Chem 31 with handwritten notes and 200+ flashcards." },
-  { id: 5, title: "Logitech M170 Wireless Mouse", price: 400, condition: "New", category: "Tech", emoji: "🖱️", seller: "Maria Santos", verified: true, description: "Sealed in box. Won it at an org raffle but I already have one." },
-  { id: 6, title: "Dorm Starter Pack (Hangers, Bins, Lamp)", price: 600, condition: "Used", category: "Supplies", emoji: "🛏️", seller: "Kevin Tan", verified: true, description: "Moving out sale! 10 hangers, 2 storage bins, and a working study lamp. Bundle only." },
+  { id: 1, title: "Calculus: Early Transcendentals (8th Ed.)", price: 450, condition: "Used", category: "Books", emoji: "📘", seller: "Maria S.", verified: true, description: "Lightly highlighted, no missing pages. Perfect for Math 21. Meet-up at the main library." },
+  { id: 2, title: "Casio FX-991EX Scientific Calculator", price: 850, condition: "Used", category: "Tech", emoji: "🧮", seller: "Jico D.", verified: true, description: "Fully working, solar + battery. Selling because I graduated. Includes slide cover." },
+  { id: 3, title: "Mini Desk Fan (USB)", price: 250, condition: "New", category: "Supplies", emoji: "🌀", seller: "Ana R.", verified: true, description: "Brand new, still sealed. Got two as gifts. Great for dorm rooms without AC." },
+  { id: 4, title: "Organic Chemistry Study Set + Flashcards", price: 300, condition: "Used", category: "Books", emoji: "🧪", seller: "Paolo L.", verified: true, description: "Complete reviewer set for Chem 31 with handwritten notes and 200+ flashcards." },
+  { id: 5, title: "Logitech M170 Wireless Mouse", price: 400, condition: "New", category: "Tech", emoji: "🖱️", seller: "Maria S.", verified: true, description: "Sealed in box. Won it at an org raffle but I already have one." },
+  { id: 6, title: "Dorm Starter Pack (Hangers, Bins, Lamp)", price: 600, condition: "Used", category: "Supplies", emoji: "🛏️", seller: "Kevin T.", verified: true, description: "Moving out sale! 10 hangers, 2 storage bins, and a working study lamp. Bundle only." },
 ];
 
 const SEED_CONVERSATIONS = [
   {
     id: 101,
-    name: "Maria Santos",
+    name: "Maria S.",
     item: "Calculus: Early Transcendentals (8th Ed.)",
     avatar: "MS",
     color: "#16A34A",
@@ -163,7 +177,7 @@ const SEED_CONVERSATIONS = [
   },
   {
     id: 102,
-    name: "Kevin Tan",
+    name: "Kevin T.",
     item: "Dorm Starter Pack (Hangers, Bins, Lamp)",
     avatar: "KT",
     color: "#EAB308",
@@ -254,14 +268,14 @@ function PrimaryButton({ loading, success, children, successLabel, ...props }) {
   );
 }
 
-function Logo({ size = 120 }) {
+function Logo({ size = 44 }) {
   return (
-    <img
-      src="logosentro_1.png"
-      alt="Sentro Logo"
-      className="mx-auto object-contain"
-      style={{ width: size, height: size }}
-    />
+    <div
+      className="rounded-2xl flex items-center justify-center font-black text-white shadow-lg mx-auto"
+      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`, fontSize: size * 0.5 }}
+    >
+      S
+    </div>
   );
 }
 
@@ -777,7 +791,6 @@ function ListingDetail({ listing, onBack, onMessage, onBuyNow, isOwn }) {
 function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
   const [method, setMethod] = useState(null);
   const [walletNumber, setWalletNumber] = useState("");
-  const [card, setCard] = useState({ number: "", expiry: "", cvv: "" });
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState("select");
   const [txn, setTxn] = useState(null);
@@ -793,8 +806,6 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
       er.method = "Please select a payment method.";
     } else if (selectedMethod.wallet && !walletNumber.trim()) {
       er.wallet = "Enter your mobile number to continue.";
-    } else if (selectedMethod.card && (!card.number.trim() || !card.expiry.trim() || !card.cvv.trim())) {
-      er.card = "Please complete all card details.";
     }
     setErrors(er);
     return Object.keys(er).length === 0;
@@ -878,7 +889,7 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
 
             {/* Payment methods */}
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Payment Method</h3>
-            <div className="grid grid-cols-3 gap-2.5 mb-1">
+            <div className="grid grid-cols-2 gap-2.5 mb-1">
               {PAYMENT_METHODS.map((m) => {
                 const active = method === m.id;
                 return (
@@ -909,22 +920,6 @@ function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
                     error={errors.wallet}
                   />
                 </Field>
-              </div>
-            )}
-
-            {selectedMethod && selectedMethod.card && (
-              <div className="mt-4">
-                <Field label="Card Number" error={errors.card}>
-                  <TextInput placeholder="1234 5678 9012 3456" value={card.number} onChange={(e) => { setCard((c) => ({ ...c, number: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
-                </Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Expiry">
-                    <TextInput placeholder="MM/YY" value={card.expiry} onChange={(e) => { setCard((c) => ({ ...c, expiry: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
-                  </Field>
-                  <Field label="CVV">
-                    <TextInput placeholder="123" value={card.cvv} onChange={(e) => { setCard((c) => ({ ...c, cvv: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
-                  </Field>
-                </div>
               </div>
             )}
 
@@ -1403,10 +1398,11 @@ function SentroApp() {
     setTimeout(() => setToast(null), 3800);
   };
 
+  // Logic update: Ensure that a new seller's post applies the new name formatting logic
   const handlePost = (item) => {
     idRef.current += 1;
     setListings((ls) => [
-      { ...item, id: idRef.current, seller: profile.fullName, verified: true, emoji: (CAT_STYLE[item.category] || {}).emoji },
+      { ...item, id: idRef.current, seller: formatName(profile.fullName), verified: true, emoji: (CAT_STYLE[item.category] || {}).emoji },
       ...ls,
     ]);
     setTimeout(() => setTab("home"), 1500);
@@ -1465,7 +1461,8 @@ function SentroApp() {
   if (stage === "onboarding") return <ProfileSetupScreen user={user} onComplete={handleProfileDone} />;
 
   const activeChat = conversations.find((c) => c.id === activeChatId);
-  const myListings = listings.filter((l) => l.seller === profile.fullName);
+  // Compare against formatted full name to find active user's listings correctly
+  const myListings = listings.filter((l) => l.seller === formatName(profile.fullName));
 
   return (
     <div className="flex flex-col h-screen" style={{ backgroundColor: C.bg }}>
@@ -1473,7 +1470,7 @@ function SentroApp() {
         {selectedListing ? (
           <ListingDetail
             listing={selectedListing}
-            isOwn={selectedListing.seller === profile.fullName}
+            isOwn={selectedListing.seller === formatName(profile.fullName)}
             onBack={() => setSelectedListing(null)}
             onMessage={() => handleMessageSeller(selectedListing)}
             onBuyNow={() => handleBuyNow(selectedListing)}
@@ -1500,7 +1497,7 @@ function SentroApp() {
       {checkoutListing && (
         <CheckoutModal
           listing={checkoutListing}
-          sellerName={profile.fullName}
+          sellerName={formatName(profile.fullName)}
           onClose={() => setCheckoutListing(null)}
           onComplete={handleCheckoutComplete}
         />
