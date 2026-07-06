@@ -268,14 +268,14 @@ function PrimaryButton({ loading, success, children, successLabel, ...props }) {
   );
 }
 
-function Logo({ size = 44 }) {
+function Logo({ size = 100 }) {
   return (
-    <div
-      className="rounded-2xl flex items-center justify-center font-black text-white shadow-lg mx-auto"
-      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`, fontSize: size * 0.5 }}
-    >
-      S
-    </div>
+    <img
+      src="logosentro_1.png"
+      alt="Sentro Logo"
+      className="mx-auto object-contain"
+      style={{ width: size, height: size }}
+    />
   );
 }
 
@@ -621,7 +621,7 @@ function HomeScreen({ listings, onOpen }) {
   return (
     <div className="px-4 pt-4 pb-2">
       <div className="flex items-center gap-3 mb-1">
-        <Logo size={34} />
+        <Logo size={55} />
         <div>
           <h1 className="text-white font-extrabold text-lg leading-tight m-0">Sentro</h1>
           <p className="text-gray-400 text-xs m-0">Find it. List it. Trust it.</p>
