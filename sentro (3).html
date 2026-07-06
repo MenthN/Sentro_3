@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sentro — Student Marketplace</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #1A1C24; font-family: Inter, Roboto, system-ui, -apple-system, sans-serif; }
+  #root { height: 100%; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #3a3d4a; border-radius: 3px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .animate-spin { animation: spin 1s linear infinite; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect } = React;
+
+/* ------------------------------------------------------------------ */
+/*  Inline SVG icons (lucide paths)                                    */
+/* ------------------------------------------------------------------ */
+const Ic = ({ size = 20, style, className, children }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>{children}</svg>
+);
+const Eye = (p) => <Ic {...p}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></Ic>;
+const EyeOff = (p) => <Ic {...p}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></Ic>;
+const HomeIcon = (p) => <Ic {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></Ic>;
+const MessageCircle = (p) => <Ic {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></Ic>;
+const PlusSquare = (p) => <Ic {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></Ic>;
+const UserIcon = (p) => <Ic {...p}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></Ic>;
+const SearchIcon = (p) => <Ic {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></Ic>;
+const ArrowLeft = (p) => <Ic {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Ic>;
+const SendIcon = (p) => <Ic {...p}><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></Ic>;
+const UploadIcon = (p) => <Ic {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Ic>;
+const CheckCircle2 = (p) => <Ic {...p}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></Ic>;
+const Loader2 = (p) => <Ic {...p}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Ic>;
+const BadgeCheck = (p) => <Ic {...p}><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></Ic>;
+const LogOut = (p) => <Ic {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Ic>;
+const ShoppingBag = (p) => <Ic {...p}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></Ic>;
+const BookOpen = (p) => <Ic {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></Ic>;
+const Cpu = (p) => <Ic {...p}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></Ic>;
+const PackageIcon = (p) => <Ic {...p}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></Ic>;
+const TagIcon = (p) => <Ic {...p}><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></Ic>;
+const ImagePlus = (p) => <Ic {...p}><path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></Ic>;
+const GraduationCap = (p) => <Ic {...p}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></Ic>;
+const XIcon = (p) => <Ic {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></Ic>;
+const CreditCardIcon = (p) => <Ic {...p}><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></Ic>;
+const WalletIcon = (p) => <Ic {...p}><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></Ic>;
+const SmartphoneIcon = (p) => <Ic {...p}><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></Ic>;
+const BanknoteIcon = (p) => <Ic {...p}><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></Ic>;
+const ShieldCheck = (p) => <Ic {...p}><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V6l8-3 8 3z"/><path d="m9 12 2 2 4-4"/></Ic>;
+const GoogleIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48">
+    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z" />
+    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 16.3 3 9.7 7.3 6.3 14.7z" />
+    <path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.5-4.6 2.4-7.2 2.4-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.6 40.6 16.2 45 24 45z" />
+    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.2 5.2C40.9 36 44 30.6 44 24c0-1.2-.1-2.4-.4-3.5z" />
+  </svg>
+);
+
+/* ------------------------------------------------------------------ */
+/*  Theme                                                              */
+/* ------------------------------------------------------------------ */
+const C = {
+  bg: "#1A1C24",
+  bgSoft: "#22242E",
+  primary: "#4B39EF",
+  success: "#249689",
+  green: "#8BC34A",
+  greenBg: "#F1F8E9",
+  greenText: "#33691E",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Payment methods & escrow constants                                 */
+/* ------------------------------------------------------------------ */
+const PAYMENT_METHODS = [
+  { id: "gcash", label: "GCash", sub: "Pay via GCash e-wallet", Icon: WalletIcon, wallet: true },
+  { id: "maya", label: "Maya", sub: "Pay via Maya e-wallet", Icon: SmartphoneIcon, wallet: true },
+  { id: "card", label: "Credit/Debit Card", sub: "Visa, Mastercard, etc.", Icon: CreditCardIcon, card: true },
+];
+const COMMISSION_RATE = 0.05;
+const MOCK_BUYER_NAMES = ["Andrea Villanueva", "Miguel Ramos", "Carla Aquino", "Diego Fernandez", "Bea Mercado"];
+const MOCK_SIGNIN_PROFILE = {
+  fullName: "Juan Dela Cruz",
+  phone: "09171234567",
+  studentId: "2023-00456",
+  studentIdImagePath: "users/uid_demo/student_id_front.jpg",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Mock Firebase backend                                              */
+/* ------------------------------------------------------------------ */
+const mockFirebase = {
+  createUserWithEmail: (email) =>
+    new Promise((resolve) =>
+      setTimeout(() => {
+        const uid = "uid_" + Math.random().toString(36).slice(2, 10);
+        console.log("[mockFirebase] auth.createUser →", { uid, email });
+        resolve({ uid, email });
+      }, 1300)
+    ),
+  uploadStudentId: (uid, file) =>
+    new Promise((resolve) =>
+      setTimeout(() => {
+        const path = `users/${uid}/student_id_${file.name}`;
+        console.log("[mockFirebase] storage.upload →", path);
+        resolve(path);
+      }, 900)
+    ),
+  saveProfile: (uid, data) =>
+    new Promise((resolve) =>
+      setTimeout(() => {
+        console.log(`[mockFirebase] firestore.set users/${uid}/ →`, data);
+        resolve({ path: `users/${uid}/`, ...data });
+      }, 1100)
+    ),
+};
+
+/* ------------------------------------------------------------------ */
+/*  Seed data                                                          */
+/* ------------------------------------------------------------------ */
+const CATEGORIES = ["All", "Books", "Tech", "Supplies"];
+
+const CAT_STYLE = {
+  Books: { emoji: "📚", grad: "linear-gradient(135deg,#667eea,#764ba2)" },
+  Tech: { emoji: "💻", grad: "linear-gradient(135deg,#4B39EF,#8b5cf6)" },
+  Supplies: { emoji: "📦", grad: "linear-gradient(135deg,#249689,#34d399)" },
+};
+
+const SEED_LISTINGS = [
+  { id: 1, title: "Calculus: Early Transcendentals (8th Ed.)", price: 450, condition: "Used", category: "Books", emoji: "📘", seller: "Maria Santos", verified: true, description: "Lightly highlighted, no missing pages. Perfect for Math 21. Meet-up at the main library." },
+  { id: 2, title: "Casio FX-991EX Scientific Calculator", price: 850, condition: "Used", category: "Tech", emoji: "🧮", seller: "Jico Dela Cruz", verified: true, description: "Fully working, solar + battery. Selling because I graduated. Includes slide cover." },
+  { id: 3, title: "Mini Desk Fan (USB)", price: 250, condition: "New", category: "Supplies", emoji: "🌀", seller: "Ana Reyes", verified: true, description: "Brand new, still sealed. Got two as gifts. Great for dorm rooms without AC." },
+  { id: 4, title: "Organic Chemistry Study Set + Flashcards", price: 300, condition: "Used", category: "Books", emoji: "🧪", seller: "Paolo Lim", verified: true, description: "Complete reviewer set for Chem 31 with handwritten notes and 200+ flashcards." },
+  { id: 5, title: "Logitech M170 Wireless Mouse", price: 400, condition: "New", category: "Tech", emoji: "🖱️", seller: "Maria Santos", verified: true, description: "Sealed in box. Won it at an org raffle but I already have one." },
+  { id: 6, title: "Dorm Starter Pack (Hangers, Bins, Lamp)", price: 600, condition: "Used", category: "Supplies", emoji: "🛏️", seller: "Kevin Tan", verified: true, description: "Moving out sale! 10 hangers, 2 storage bins, and a working study lamp. Bundle only." },
+];
+
+const SEED_CONVERSATIONS = [
+  {
+    id: 101,
+    name: "Maria Santos",
+    item: "Calculus: Early Transcendentals (8th Ed.)",
+    avatar: "MS",
+    color: "#8b5cf6",
+    messages: [
+      { id: 1, from: "them", text: "Hi! Yes, the Calculus book is still available 😊", time: "10:12 AM" },
+      { id: 2, from: "me", text: "Great! Can we meet at the library tomorrow around 3pm?", time: "10:15 AM" },
+      { id: 3, from: "them", text: "Sure, 3pm works. See you at the front desk!", time: "10:18 AM" },
+    ],
+  },
+  {
+    id: 102,
+    name: "Kevin Tan",
+    item: "Dorm Starter Pack (Hangers, Bins, Lamp)",
+    avatar: "KT",
+    color: "#249689",
+    messages: [
+      { id: 1, from: "me", text: "Hello! Is the lamp still working well?", time: "Yesterday" },
+      { id: 2, from: "them", text: "Yup! Barely used it, mostly studied at the caf 😅", time: "Yesterday" },
+    ],
+  },
+];
+
+const AUTO_REPLIES = [
+  "Sure, that works for me!",
+  "Yes, it's still available 👍",
+  "Can you meet near the student center?",
+  "Sounds good, see you then!",
+];
+
+/* ------------------------------------------------------------------ */
+/*  Validation helpers                                                 */
+/* ------------------------------------------------------------------ */
+const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+const isValidPhone = (v) => /^09\d{9}$/.test(v.trim());
+
+/* ------------------------------------------------------------------ */
+/*  Shared UI atoms                                                    */
+/* ------------------------------------------------------------------ */
+function Field({ label, error, children }) {
+  return (
+    <div className="mb-4 text-left">
+      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+      {children}
+      {error && <p className="text-xs text-red-500 mt-1.5 font-medium">{error}</p>}
+    </div>
+  );
+}
+
+const inputClass = (error) =>
+  `w-full px-4 py-3 rounded-xl border text-sm text-gray-800 bg-gray-50 outline-none transition-all placeholder-gray-400 box-border ${
+    error ? "border-red-400" : "border-gray-200"
+  }`;
+
+function TextInput({ error, ...props }) {
+  return (
+    <input
+      {...props}
+      className={inputClass(error)}
+      style={{ borderColor: error ? "#f87171" : undefined, width: "100%", boxSizing: "border-box" }}
+      onFocus={(e) => { if (!error) e.target.style.borderColor = C.primary; }}
+      onBlur={(e) => { e.target.style.borderColor = error ? "#f87171" : "#e5e7eb"; }}
+    />
+  );
+}
+
+function PasswordInput({ error, ...props }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <TextInput {...props} error={error} type={show ? "text" : "password"} />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShow((s) => !s)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 bg-transparent border-0 cursor-pointer"
+        aria-label={show ? "Hide password" : "Show password"}
+      >
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  );
+}
+
+function PrimaryButton({ loading, success, children, successLabel, ...props }) {
+  return (
+    <button
+      {...props}
+      disabled={loading || success || props.disabled}
+      className="w-full py-3.5 rounded-xl font-bold text-white text-sm tracking-wide transition-all flex items-center justify-center gap-2 disabled:opacity-90 active:scale-[0.98] shadow-lg border-0 cursor-pointer"
+      style={{ backgroundColor: success ? C.success : C.primary }}
+    >
+      {loading ? (
+        <React.Fragment><Loader2 size={18} className="animate-spin" /> Please wait…</React.Fragment>
+      ) : success ? (
+        <React.Fragment><CheckCircle2 size={18} /> {successLabel || "Success!"}</React.Fragment>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
+function Logo({ size = 44 }) {
+  return (
+    <div
+      className="rounded-2xl flex items-center justify-center font-black text-white shadow-lg mx-auto"
+      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, #8b5cf6)`, fontSize: size * 0.5 }}
+    >
+      S
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step 1 — Sign Up                                                   */
+/* ------------------------------------------------------------------ */
+function SignUpScreen({ onCreated, onSwitchToSignIn }) {
+  const [form, setForm] = useState({ email: "", password: "", confirm: "" });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const set = (k) => (e) => {
+    const v = e.target.value;
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((er) => ({ ...er, [k]: undefined, global: undefined }));
+  };
+
+  const validate = () => {
+    const er = {};
+    if (!form.email.trim()) er.email = "Email is required.";
+    else if (!isValidEmail(form.email)) er.email = "Please enter a valid email address.";
+    if (!form.password) er.password = "Password is required.";
+    else if (form.password.length < 6) er.password = "Password must be at least 6 characters.";
+    if (!form.confirm) er.confirm = "Please confirm your password.";
+    else if (form.password && form.confirm !== form.password) er.confirm = "Passwords do not match.";
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (loading || success) return; // race-condition guard
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const user = await mockFirebase.createUserWithEmail(form.email);
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => onCreated(user), 900); // smooth transition
+    } catch (err) {
+      setLoading(false);
+      setErrors({ global: "Something went wrong. Please try again." });
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ backgroundColor: C.bg }}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10 text-center">
+        <Logo />
+        <h1 className="text-2xl font-extrabold text-gray-900 mt-4 mb-0">Join Sentro</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-7">The student-exclusive marketplace.<br />Find it. List it. Trust it.</p>
+
+        <form onSubmit={submit} noValidate>
+          <Field label="Email" error={errors.email}>
+            <TextInput type="email" placeholder="you@university.edu.ph" value={form.email} onChange={set("email")} error={errors.email} autoComplete="email" />
+          </Field>
+          <Field label="Password" error={errors.password}>
+            <PasswordInput placeholder="At least 6 characters" value={form.password} onChange={set("password")} error={errors.password} autoComplete="new-password" />
+          </Field>
+          <Field label="Confirm Password" error={errors.confirm}>
+            <PasswordInput placeholder="Re-enter your password" value={form.confirm} onChange={set("confirm")} error={errors.confirm} autoComplete="new-password" />
+          </Field>
+
+          {errors.global && <p className="text-xs text-red-500 mb-3 font-medium">{errors.global}</p>}
+
+          <div className="mt-6">
+            <PrimaryButton type="submit" loading={loading} success={success} successLabel="Account created!">
+              Create Account
+            </PrimaryButton>
+          </div>
+        </form>
+
+        <p className="text-xs text-gray-400 mt-6 mb-0">
+          By signing up you agree to Sentro's student community guidelines.
+        </p>
+        <p className="text-xs text-gray-400 mt-3 mb-0">
+          Already have an account?{" "}
+          <button type="button" onClick={onSwitchToSignIn} className="font-bold bg-transparent border-0 p-0 cursor-pointer" style={{ color: C.primary }}>
+            Sign In
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step 0 — Sign In                                                   */
+/* ------------------------------------------------------------------ */
+function SignInScreen({ onSignedIn, onSwitchToSignUp }) {
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const set = (k) => (e) => {
+    const v = e.target.value;
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((er) => ({ ...er, [k]: undefined, global: undefined }));
+  };
+
+  const validate = () => {
+    const er = {};
+    if (!form.email.trim()) er.email = "Email is required.";
+    else if (!isValidEmail(form.email)) er.email = "Please enter a valid email address.";
+    if (!form.password) er.password = "Password is required.";
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (loading || success) return; // race-condition guard
+    if (!validate()) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => onSignedIn(form.email.trim()), 800);
+    }, 1100);
+  };
+
+  const googleSignIn = () => {
+    if (loading || success) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => onSignedIn("juan.delacruz@university.edu.ph"), 800);
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ backgroundColor: C.bg }}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10 text-center">
+        <Logo />
+        <h1 className="text-2xl font-extrabold text-gray-900 mt-4 mb-0">Welcome Back</h1>
+        <p className="text-sm text-gray-500 mt-1 mb-7">Sign in to continue to Sentro.</p>
+
+        <form onSubmit={submit} noValidate>
+          <Field label="Email" error={errors.email}>
+            <TextInput type="email" placeholder="you@university.edu.ph" value={form.email} onChange={set("email")} error={errors.email} autoComplete="email" />
+          </Field>
+          <Field label="Password" error={errors.password}>
+            <PasswordInput placeholder="Enter your password" value={form.password} onChange={set("password")} error={errors.password} autoComplete="current-password" />
+          </Field>
+
+          <div className="text-right -mt-2 mb-5">
+            <button type="button" className="text-xs font-semibold bg-transparent border-0 p-0 cursor-pointer" style={{ color: C.primary }}>
+              Forgot Password?
+            </button>
+          </div>
+
+          {errors.global && <p className="text-xs text-red-500 mb-3 font-medium">{errors.global}</p>}
+
+          <PrimaryButton type="submit" loading={loading} success={success} successLabel="Signed in!">
+            Sign In
+          </PrimaryButton>
+        </form>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-[11px] font-semibold text-gray-400">OR</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={googleSignIn}
+          disabled={loading || success}
+          className="w-full py-3.5 rounded-xl font-bold text-sm border border-gray-200 flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-60"
+        >
+          <GoogleIcon size={18} />
+          <span className="text-gray-700">Sign In with Google</span>
+        </button>
+
+        <p className="text-xs text-gray-400 mt-6 mb-0">
+          Don't have an account?{" "}
+          <button type="button" onClick={onSwitchToSignUp} className="font-bold bg-transparent border-0 p-0 cursor-pointer" style={{ color: C.primary }}>
+            Sign Up
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step 2 — Verify Account / Complete Profile                         */
+/* ------------------------------------------------------------------ */
+function ProfileSetupScreen({ user, onComplete }) {
+  const [form, setForm] = useState({ fullName: "", phone: "", studentId: "" });
+  const [file, setFile] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef(null);
+
+  const set = (k) => (e) => {
+    const v = e.target.value;
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((er) => ({ ...er, [k]: undefined }));
+  };
+
+  const acceptFile = (f) => {
+    if (!f) return;
+    setFile(f);
+    setErrors((er) => ({ ...er, file: undefined }));
+  };
+
+  const validate = () => {
+    const er = {};
+    if (!form.fullName.trim()) er.fullName = "Full name is required.";
+    if (!form.phone.trim()) er.phone = "Cellphone number is required.";
+    else if (!isValidPhone(form.phone)) er.phone = "Use the format 09XXXXXXXXX (11 digits).";
+    if (!form.studentId.trim()) er.studentId = "Student ID number is required.";
+    if (!file) er.file = "Please upload a photo of your Student ID.";
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (loading || success) return; // race-condition guard
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const idPath = await mockFirebase.uploadStudentId(user.uid, file);
+      const profile = await mockFirebase.saveProfile(user.uid, {
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim(),
+        studentId: form.studentId.trim(),
+        studentIdImagePath: idPath,
+      });
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => onComplete(profile), 900);
+    } catch (err) {
+      setLoading(false);
+      setErrors({ global: "Upload failed. Please try again." });
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ backgroundColor: C.bg }}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#EEF2FF" }}>
+            <GraduationCap size={26} style={{ color: C.primary }} />
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 mt-4 mb-0">Verify Account</h1>
+          <p className="text-sm text-gray-500 mt-1 mb-7">
+            Signed in as <span className="font-semibold" style={{ color: C.primary }}>{user.email}</span>.
+            Complete your profile to unlock the marketplace.
+          </p>
+        </div>
+
+        <form onSubmit={submit} noValidate>
+          <Field label="Full Name" error={errors.fullName}>
+            <TextInput placeholder="Juan D. Dela Cruz" value={form.fullName} onChange={set("fullName")} error={errors.fullName} />
+          </Field>
+          <Field label="Cellphone Number" error={errors.phone}>
+            <TextInput type="tel" placeholder="09XXXXXXXXX" maxLength={11} value={form.phone}
+              onChange={(e) => { const v = e.target.value.replace(/[^\d]/g, ""); setForm((f) => ({ ...f, phone: v })); setErrors((er) => ({ ...er, phone: undefined })); }}
+              error={errors.phone} />
+          </Field>
+          <Field label="Student ID Number" error={errors.studentId}>
+            <TextInput placeholder="2026-12345" value={form.studentId} onChange={set("studentId")} error={errors.studentId} />
+          </Field>
+
+          <Field label="Upload Student ID" error={errors.file}>
+            <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => acceptFile(e.target.files && e.target.files[0])} />
+            <button
+              type="button"
+              onClick={() => fileRef.current && fileRef.current.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); acceptFile(e.dataTransfer.files && e.dataTransfer.files[0]); }}
+              className="w-full rounded-xl border-2 border-dashed py-6 px-4 flex flex-col items-center gap-2 transition-all cursor-pointer"
+              style={{
+                borderColor: errors.file ? "#f87171" : dragOver || file ? C.primary : "#d1d5db",
+                backgroundColor: dragOver ? "#EEF2FF" : file ? "#F5F3FF" : "#fafafa",
+              }}
+            >
+              {file ? (
+                <React.Fragment>
+                  <CheckCircle2 size={26} style={{ color: C.success }} />
+                  <span className="text-sm font-semibold text-gray-700 break-all">{file.name}</span>
+                  <span className="text-xs text-gray-400">Tap to replace</span>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <UploadIcon size={26} style={{ color: C.primary }} />
+                  <span className="text-sm font-semibold text-gray-700">Upload Student ID</span>
+                  <span className="text-xs text-gray-400">Drag &amp; drop, or tap to browse</span>
+                </React.Fragment>
+              )}
+            </button>
+          </Field>
+
+          {errors.global && <p className="text-xs text-red-500 mb-3 font-medium">{errors.global}</p>}
+
+          <div className="mt-6">
+            <PrimaryButton type="submit" loading={loading} success={success} successLabel="Profile verified!">
+              Submit &amp; Verify
+            </PrimaryButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Marketplace — Home feed                                            */
+/* ------------------------------------------------------------------ */
+function ListingImage({ listing, className }) {
+  const cat = CAT_STYLE[listing.category] || CAT_STYLE.Supplies;
+  if (listing.imageUrl) {
+    return <img src={listing.imageUrl} alt={listing.title} className={className + " object-cover"} />;
+  }
+  return (
+    <div className={className + " flex items-center justify-center"} style={{ background: cat.grad }}>
+      <span style={{ fontSize: 42 }}>{listing.emoji || cat.emoji}</span>
+    </div>
+  );
+}
+
+function HomeScreen({ listings, onOpen }) {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("All");
+
+  const filtered = listings.filter(
+    (l) =>
+      (cat === "All" || l.category === cat) &&
+      l.title.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
+  const CatIcon = { All: ShoppingBag, Books: BookOpen, Tech: Cpu, Supplies: PackageIcon };
+
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <div className="flex items-center gap-3 mb-1">
+        <Logo size={34} />
+        <div>
+          <h1 className="text-white font-extrabold text-lg leading-tight m-0">Sentro</h1>
+          <p className="text-gray-400 text-xs m-0">Find it. List it. Trust it.</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative mt-4">
+        <SearchIcon size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search textbooks, gadgets, supplies…"
+          className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none border border-transparent"
+          style={{ backgroundColor: C.bgSoft, boxSizing: "border-box" }}
+          onFocus={(e) => (e.target.style.borderColor = C.primary)}
+          onBlur={(e) => (e.target.style.borderColor = "transparent")}
+        />
+      </div>
+
+      {/* Category chips */}
+      <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+        {CATEGORIES.map((c) => {
+          const Icon = CatIcon[c];
+          const active = cat === c;
+          return (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all border-0 cursor-pointer"
+              style={{
+                backgroundColor: active ? C.primary : C.bgSoft,
+                color: active ? "#fff" : "#9ca3af",
+              }}
+            >
+              <Icon size={13} /> {c}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-gray-400 text-sm">No listings match your search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+          {filtered.map((l) => (
+            <button
+              key={l.id}
+              onClick={() => onOpen(l)}
+              className="bg-white rounded-xl overflow-hidden shadow-md text-left hover:shadow-xl transition-shadow active:scale-[0.98] border-0 p-0 cursor-pointer"
+            >
+              <ListingImage listing={l} className="w-full h-32" />
+              <div className="p-3">
+                <p className="text-[13px] font-semibold text-gray-800 leading-snug line-clamp-2 m-0">{l.title}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="font-extrabold text-sm" style={{ color: C.primary }}>₱{Number(l.price).toLocaleString()}</span>
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: l.condition === "New" ? "#E6F7F4" : "#F3F4F6",
+                      color: l.condition === "New" ? C.success : "#6b7280",
+                    }}
+                  >
+                    {l.condition}
+                  </span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Listing detail                                                     */
+/* ------------------------------------------------------------------ */
+function ListingDetail({ listing, onBack, onMessage, onBuyNow, isOwn }) {
+  return (
+    <div className="min-h-full pb-6">
+      <div className="relative">
+        <ListingImage listing={listing} className="w-full h-56 sm:h-72" />
+        <button
+          onClick={onBack}
+          className="absolute top-4 left-4 w-9 h-9 rounded-full flex items-center justify-center text-white border-0 cursor-pointer"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          aria-label="Back"
+        >
+          <ArrowLeft size={18} />
+        </button>
+      </div>
+
+      <div className="bg-white rounded-t-2xl -mt-4 relative px-5 pt-5 pb-6" style={{ minHeight: 260 }}>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-lg font-extrabold text-gray-900 leading-snug m-0">{listing.title}</h2>
+          <span
+            className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 mt-0.5"
+            style={{
+              backgroundColor: listing.condition === "New" ? "#E6F7F4" : "#F3F4F6",
+              color: listing.condition === "New" ? C.success : "#6b7280",
+            }}
+          >
+            {listing.condition}
+          </span>
+        </div>
+        <p className="text-2xl font-extrabold mt-2 mb-0" style={{ color: C.primary }}>
+          ₱{Number(listing.price).toLocaleString()}
+        </p>
+
+        <div className="flex items-center gap-2 mt-4 py-3 border-t border-b border-gray-100">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: C.primary }}>
+            {listing.seller.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-800 flex items-center gap-1 m-0">
+              {listing.seller}
+              {listing.verified && <BadgeCheck size={15} style={{ color: C.success }} />}
+            </p>
+            <p className="text-[11px] text-gray-400 m-0">Verified student seller</p>
+          </div>
+          <span className="flex items-center gap-1 text-[11px] text-gray-400"><TagIcon size={12} /> {listing.category}</span>
+        </div>
+
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mt-4 mb-1.5">Description</h3>
+        <p className="text-sm text-gray-600 leading-relaxed m-0">{listing.description}</p>
+
+        {isOwn ? (
+          <button
+            disabled
+            className="w-full mt-6 py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 border-0 cursor-pointer"
+            style={{ backgroundColor: C.primary }}
+          >
+            This is your listing
+          </button>
+        ) : (
+          <div className="mt-6 flex flex-col gap-2.5">
+            <button
+              onClick={onBuyNow}
+              className="w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all border-0 cursor-pointer"
+              style={{ backgroundColor: C.primary }}
+            >
+              <ShieldCheck size={18} />
+              Buy Now · Pay via Escrow
+            </button>
+            <button
+              onClick={onMessage}
+              className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2 active:scale-[0.98] transition-all bg-white cursor-pointer"
+              style={{ borderColor: C.primary, color: C.primary }}
+            >
+              <MessageCircle size={18} />
+              Message Seller
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Checkout & Payment (Buyer side)                                    */
+/* ------------------------------------------------------------------ */
+function CheckoutModal({ listing, sellerName, onClose, onComplete }) {
+  const [method, setMethod] = useState(null);
+  const [walletNumber, setWalletNumber] = useState("");
+  const [card, setCard] = useState({ number: "", expiry: "", cvv: "" });
+  const [errors, setErrors] = useState({});
+  const [step, setStep] = useState("select"); // select | processing | success
+  const [txn, setTxn] = useState(null);
+
+  const price = Number(listing.price);
+  const commission = Math.round(price * COMMISSION_RATE);
+  const net = price - commission;
+  const selectedMethod = PAYMENT_METHODS.find((m) => m.id === method);
+
+  const validate = () => {
+    const er = {};
+    if (!method) {
+      er.method = "Please select a payment method.";
+    } else if (selectedMethod.wallet && !walletNumber.trim()) {
+      er.wallet = "Enter your mobile number to continue.";
+    } else if (selectedMethod.card && (!card.number.trim() || !card.expiry.trim() || !card.cvv.trim())) {
+      er.card = "Please complete all card details.";
+    }
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const pay = () => {
+    if (step === "processing") return;
+    if (!validate()) return;
+    setStep("processing");
+    setTimeout(() => {
+      const newTxn = {
+        id: Date.now() + Math.random(),
+        transactionId: "TXN-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
+        itemTitle: listing.title,
+        buyerName: MOCK_BUYER_NAMES[Math.floor(Math.random() * MOCK_BUYER_NAMES.length)],
+        sellerName,
+        amount: price,
+        commission,
+        netEarnings: net,
+        method,
+        status: "held",
+        createdAt: new Date().toLocaleString(),
+      };
+      setTxn(newTxn);
+      setStep("success");
+    }, 1500);
+  };
+
+  const finish = () => {
+    onComplete(txn);
+    onClose();
+  };
+
+  const closeDisabled = step === "processing";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-0 sm:px-4"
+      onClick={() => { if (!closeDisabled) onClose(); }}
+    >
+      <div
+        className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 max-h-[92vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {step !== "success" && (
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-extrabold text-gray-900 m-0">Checkout</h2>
+            <button
+              onClick={() => { if (!closeDisabled) onClose(); }}
+              disabled={closeDisabled}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 disabled:opacity-30 bg-transparent border-0 cursor-pointer"
+              aria-label="Close"
+            >
+              <XIcon size={18} />
+            </button>
+          </div>
+        )}
+
+        {step === "select" && (
+          <React.Fragment>
+            <div className="flex items-center gap-3 mb-4">
+              <ListingImage listing={listing} className="w-14 h-14 rounded-xl shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 truncate m-0">{listing.title}</p>
+                <p className="text-xs text-gray-400 m-0">Sold by {sellerName}</p>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Item Price</span>
+                <span className="font-semibold text-gray-800">₱{price.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2.5 pt-2.5 border-t border-gray-200">
+                <span className="text-sm font-extrabold text-gray-800">Total</span>
+                <span className="text-lg font-extrabold" style={{ color: C.primary }}>₱{price.toLocaleString()}</span>
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1.5 mb-0">Total amount paid by buyer.</p>
+            </div>
+
+            {/* Payment methods */}
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Payment Method</h3>
+            <div className="grid grid-cols-3 gap-2.5 mb-1">
+              {PAYMENT_METHODS.map((m) => {
+                const active = method === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => { setMethod(m.id); setErrors({}); }}
+                    className="text-left p-3 rounded-xl border-2 transition-all bg-white cursor-pointer"
+                    style={{ borderColor: active ? C.primary : "#e5e7eb", backgroundColor: active ? "#EEF2FF" : "#fff" }}
+                  >
+                    <m.Icon size={18} style={{ color: active ? C.primary : "#6b7280" }} />
+                    <p className="text-xs font-bold text-gray-800 mt-1.5 mb-0">{m.label}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 mb-0 leading-tight">{m.sub}</p>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.method && <p className="text-xs text-red-500 font-medium mt-1 mb-0">{errors.method}</p>}
+
+            {selectedMethod && selectedMethod.wallet && (
+              <div className="mt-4">
+                <Field label={`${selectedMethod.label} Mobile Number`} error={errors.wallet}>
+                  <TextInput
+                    type="tel"
+                    placeholder="09XXXXXXXXX"
+                    value={walletNumber}
+                    onChange={(e) => { setWalletNumber(e.target.value.replace(/[^\d]/g, "")); setErrors((er) => ({ ...er, wallet: undefined })); }}
+                    error={errors.wallet}
+                  />
+                </Field>
+              </div>
+            )}
+
+            {selectedMethod && selectedMethod.card && (
+              <div className="mt-4">
+                <Field label="Card Number" error={errors.card}>
+                  <TextInput placeholder="1234 5678 9012 3456" value={card.number} onChange={(e) => { setCard((c) => ({ ...c, number: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Expiry">
+                    <TextInput placeholder="MM/YY" value={card.expiry} onChange={(e) => { setCard((c) => ({ ...c, expiry: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
+                  </Field>
+                  <Field label="CVV">
+                    <TextInput placeholder="123" value={card.cvv} onChange={(e) => { setCard((c) => ({ ...c, cvv: e.target.value })); setErrors((er) => ({ ...er, card: undefined })); }} />
+                  </Field>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={pay}
+              className="w-full mt-2 py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all border-0 cursor-pointer"
+              style={{ backgroundColor: C.primary }}
+            >
+              Pay ₱{price.toLocaleString()}
+            </button>
+            <p className="text-[11px] text-gray-400 text-center mt-3 mb-0 flex items-center justify-center gap-1">
+              <ShieldCheck size={12} /> Funds are held safely in Sentro Escrow until delivery.
+            </p>
+          </React.Fragment>
+        )}
+
+        {step === "processing" && (
+          <div className="py-14 flex flex-col items-center justify-center">
+            <Loader2 size={32} className="animate-spin" style={{ color: C.primary }} />
+            <p className="text-sm font-semibold text-gray-600 mt-4 mb-0">Processing your payment…</p>
+          </div>
+        )}
+
+        {step === "success" && txn && (
+          <div className="text-center py-2">
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ backgroundColor: C.green }}>
+              <CheckCircle2 size={32} style={{ color: "#fff" }} />
+            </div>
+            <h3 className="text-lg font-extrabold text-gray-900 mt-4 mb-1">Payment Successful!</h3>
+            <p className="text-sm font-semibold mb-4" style={{ color: C.greenText }}>Payment Sent to Sentro Escrow</p>
+            <div className="bg-gray-50 rounded-xl p-4 text-left text-xs text-gray-600 space-y-1.5">
+              <div className="flex justify-between"><span>Transaction ID</span><span className="font-bold text-gray-800">{txn.transactionId}</span></div>
+              <div className="flex justify-between"><span>Item</span><span className="font-bold text-gray-800 truncate max-w-[60%]">{txn.itemTitle}</span></div>
+              <div className="flex justify-between"><span>Amount Paid</span><span className="font-bold text-gray-800">₱{txn.amount.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Payment Method</span><span className="font-bold text-gray-800">{PAYMENT_METHODS.find((m) => m.id === txn.method).label}</span></div>
+            </div>
+            <button
+              onClick={finish}
+              className="mt-5 w-full py-3.5 rounded-xl font-bold text-white text-sm shadow-lg active:scale-[0.98] transition-all border-0 cursor-pointer"
+              style={{ backgroundColor: C.primary }}
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Seller Verification & Escrow Dashboard                             */
+/* ------------------------------------------------------------------ */
+function SellerDashboard({ transactions, onConfirm }) {
+  return (
+    <div className="px-4 pt-5 pb-4">
+      <h1 className="text-white font-extrabold text-xl mb-1 mt-0">My Sales</h1>
+      <p className="text-gray-400 text-xs mb-5 mt-0">Payments are verified and held by Sentro until you confirm handover.</p>
+
+      {transactions.length === 0 ? (
+        <div className="text-center py-16">
+          <PackageIcon size={30} className="mx-auto text-gray-500" />
+          <p className="text-gray-400 text-sm mt-3">No sales yet. Once a buyer checks out on one of your items, it'll show up here.</p>
+        </div>
+      ) : (
+        <div className="space-y-3 max-w-lg mx-auto">
+          {transactions.map((t) => (
+            <div key={t.id} className="bg-white rounded-2xl shadow-xl p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-extrabold text-gray-900 truncate m-0">{t.itemTitle}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 mb-0">Buyer: {t.buyerName}</p>
+                  <p className="text-[10px] text-gray-300 mt-0.5 mb-0">{t.transactionId} · {t.createdAt}</p>
+                </div>
+                <span
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1"
+                  style={{ backgroundColor: t.status === "held" ? C.greenBg : "#EEF2FF", color: t.status === "held" ? C.greenText : C.primary }}
+                >
+                  <BadgeCheck size={11} />
+                  {t.status === "held" ? "Payment Verified - Held by Sentro" : "Funds Released"}
+                </span>
+              </div>
+
+              {/* 5% commission breakdown */}
+              <div className="bg-gray-50 rounded-xl p-3.5 mt-4 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Buyer Paid</span>
+                  <span className="font-semibold text-gray-800">₱{t.amount.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Sentro Commission (5%)</span>
+                  <span className="font-semibold text-red-500">−₱{t.commission.toLocaleString()} <span className="text-gray-400 font-normal">(to Sentro GCash)</span></span>
+                </div>
+                <div className="flex justify-between text-sm pt-1.5 mt-1 border-t border-gray-200">
+                  <span className="font-extrabold text-gray-800">Your Net Earnings</span>
+                  <span className="font-extrabold" style={{ color: C.greenText }}>₱{t.netEarnings.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onConfirm(t.id)}
+                disabled={t.status === "completed"}
+                className="w-full mt-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] border-0 cursor-pointer disabled:opacity-70"
+                style={{ backgroundColor: t.status === "completed" ? C.greenBg : C.primary, color: t.status === "completed" ? C.greenText : "#fff" }}
+              >
+                <CheckCircle2 size={16} />
+                {t.status === "completed" ? "Handover Confirmed" : "Confirm Handover / Delivery"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sell — Post an Item                                                */
+/* ------------------------------------------------------------------ */
+function SellScreen({ onPost }) {
+  const [form, setForm] = useState({ title: "", price: "", category: "Books", condition: "Used", description: "" });
+  const [image, setImage] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef(null);
+
+  const set = (k) => (e) => {
+    const v = e.target.value;
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((er) => ({ ...er, [k]: undefined }));
+  };
+
+  const pickImage = (f) => {
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setImage(ev.target.result);
+    reader.readAsDataURL(f);
+  };
+
+  const validate = () => {
+    const er = {};
+    if (!form.title.trim()) er.title = "Title is required.";
+    if (!form.price || Number(form.price) <= 0) er.price = "Enter a valid price.";
+    if (!form.description.trim()) er.description = "Add a short description.";
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (loading || success) return;
+    if (!validate()) return;
+    setLoading(true);
+    setTimeout(() => {
+      onPost({ ...form, price: Number(form.price), imageUrl: image });
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        setForm({ title: "", price: "", category: "Books", condition: "Used", description: "" });
+        setImage(null);
+      }, 1400);
+    }, 1000);
+  };
+
+  const selectClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 bg-gray-50 outline-none";
+
+  return (
+    <div className="px-4 pt-5 pb-4">
+      <h1 className="text-white font-extrabold text-xl mb-1 mt-0">Post an Item</h1>
+      <p className="text-gray-400 text-xs mb-5 mt-0">List something for your fellow students.</p>
+
+      <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-lg mx-auto">
+        <form onSubmit={submit} noValidate>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => pickImage(e.target.files && e.target.files[0])} />
+          <button
+            type="button"
+            onClick={() => fileRef.current && fileRef.current.click()}
+            className="w-full h-40 rounded-xl border-2 border-dashed border-gray-300 mb-5 overflow-hidden flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer p-0"
+          >
+            {image ? (
+              <img src={image} alt="preview" className="w-full h-full object-cover" />
+            ) : (
+              <React.Fragment>
+                <ImagePlus size={28} style={{ color: C.primary }} />
+                <span className="text-xs font-semibold text-gray-500">Add item photo</span>
+              </React.Fragment>
+            )}
+          </button>
+
+          <Field label="Title" error={errors.title}>
+            <TextInput placeholder="e.g., Physics 71 Textbook" value={form.title} onChange={set("title")} error={errors.title} />
+          </Field>
+          <Field label="Price (₱)" error={errors.price}>
+            <TextInput type="number" min="1" placeholder="0.00" value={form.price} onChange={set("price")} error={errors.price} />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Category">
+              <select className={selectClass} style={{ boxSizing: "border-box" }} value={form.category} onChange={set("category")}>
+                <option>Books</option><option>Tech</option><option>Supplies</option>
+              </select>
+            </Field>
+            <Field label="Condition">
+              <select className={selectClass} style={{ boxSizing: "border-box" }} value={form.condition} onChange={set("condition")}>
+                <option>New</option><option>Used</option>
+              </select>
+            </Field>
+          </div>
+
+          <Field label="Description" error={errors.description}>
+            <textarea
+              rows={3}
+              placeholder="Condition details, meet-up spots, etc."
+              value={form.description}
+              onChange={set("description")}
+              className={inputClass(errors.description) + " resize-none"}
+              style={{ width: "100%", boxSizing: "border-box", fontFamily: "inherit" }}
+              onFocus={(e) => { if (!errors.description) e.target.style.borderColor = C.primary; }}
+              onBlur={(e) => { e.target.style.borderColor = errors.description ? "#f87171" : "#e5e7eb"; }}
+            />
+          </Field>
+
+          <div className="mt-5">
+            <PrimaryButton type="submit" loading={loading} success={success} successLabel="Item posted!">
+              Post Listing
+            </PrimaryButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Chat                                                               */
+/* ------------------------------------------------------------------ */
+function InboxScreen({ conversations, onOpen }) {
+  return (
+    <div className="px-4 pt-5">
+      <h1 className="text-white font-extrabold text-xl mb-4 mt-0">Inbox</h1>
+      {conversations.length === 0 ? (
+        <p className="text-gray-400 text-sm text-center py-16">No conversations yet. Message a seller to start!</p>
+      ) : (
+        <div className="space-y-2.5">
+          {conversations.map((c) => {
+            const last = c.messages[c.messages.length - 1];
+            return (
+              <button
+                key={c.id}
+                onClick={() => onOpen(c.id)}
+                className="w-full bg-white rounded-xl shadow-md p-3.5 flex items-center gap-3 text-left hover:shadow-lg transition-shadow active:scale-[0.99] border-0 cursor-pointer"
+              >
+                <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: c.color }}>
+                  {c.avatar}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-bold text-gray-900 truncate m-0">{c.name}</p>
+                    <span className="text-[10px] text-gray-400 shrink-0">{last ? last.time : ""}</span>
+                  </div>
+                  <p className="text-[11px] font-medium truncate m-0" style={{ color: C.primary }}>Re: {c.item}</p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5 mb-0">
+                    {last ? (last.from === "me" ? "You: " : "") + last.text : ""}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChatThread({ conversation, onBack, onSend }) {
+  const [text, setText] = useState("");
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [conversation.messages.length]);
+
+  const send = (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    onSend(conversation.id, text.trim());
+    setText("");
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderBottom: "1px solid #2e3140" }}>
+        <button onClick={onBack} className="text-gray-300 p-1 bg-transparent border-0 cursor-pointer" aria-label="Back"><ArrowLeft size={20} /></button>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: conversation.color }}>
+          {conversation.avatar}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-white flex items-center gap-1 truncate m-0">
+            {conversation.name} <BadgeCheck size={14} style={{ color: C.success }} />
+          </p>
+          <p className="text-[11px] text-gray-400 truncate m-0">{conversation.item}</p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
+        {conversation.messages.map((m) => (
+          <div key={m.id} className={"flex " + (m.from === "me" ? "justify-end" : "justify-start")}>
+            <div
+              className="max-w-[78%] px-3.5 py-2.5 text-sm leading-relaxed shadow-sm"
+              style={
+                m.from === "me"
+                  ? { backgroundColor: C.primary, color: "#fff", borderRadius: "16px 16px 4px 16px" }
+                  : { backgroundColor: "#E9EAF0", color: "#1f2937", borderRadius: "16px 16px 16px 4px" }
+              }
+            >
+              <p className="m-0">{m.text}</p>
+              <p className={"text-[10px] mt-1 mb-0 " + (m.from === "me" ? "text-white/70" : "text-gray-400")}>{m.time}</p>
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+
+      <form onSubmit={send} className="flex items-center gap-2 px-3 py-3 shrink-0" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #2e3140" }}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message…"
+          className="flex-1 px-4 py-2.5 rounded-full text-sm text-white placeholder-gray-500 outline-none border-0"
+          style={{ backgroundColor: C.bg }}
+        />
+        <button
+          type="submit"
+          disabled={!text.trim()}
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 disabled:opacity-40 active:scale-95 transition-all border-0 cursor-pointer"
+          style={{ backgroundColor: C.primary }}
+          aria-label="Send"
+        >
+          <SendIcon size={17} />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Profile                                                            */
+/* ------------------------------------------------------------------ */
+function ProfileScreen({ user, profile, myListings, onSignOut }) {
+  return (
+    <div className="px-4 pt-5 pb-4">
+      <h1 className="text-white font-extrabold text-xl mb-4 mt-0">Profile</h1>
+
+      <div className="bg-white rounded-2xl shadow-xl p-6 text-center max-w-lg mx-auto">
+        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-extrabold" style={{ background: `linear-gradient(135deg, ${C.primary}, #8b5cf6)` }}>
+          {profile.fullName.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+        </div>
+        <h2 className="text-lg font-extrabold text-gray-900 mt-3 mb-0 flex items-center justify-center gap-1.5">
+          {profile.fullName} <BadgeCheck size={18} style={{ color: C.success }} />
+        </h2>
+        <p className="text-xs font-semibold mt-0.5 mb-0" style={{ color: C.success }}>Verified Student</p>
+
+        <div className="mt-5 text-left space-y-3">
+          {[
+            ["Email", user.email],
+            ["Cellphone", profile.phone],
+            ["Student ID", profile.studentId],
+            ["ID Document", profile.studentIdImagePath],
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between items-center gap-4 py-2 border-b border-gray-100">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wide shrink-0">{k}</span>
+              <span className="text-sm text-gray-700 font-medium truncate">{v}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="rounded-xl p-3" style={{ backgroundColor: "#EEF2FF" }}>
+            <p className="text-xl font-extrabold m-0" style={{ color: C.primary }}>{myListings.length}</p>
+            <p className="text-[11px] font-semibold text-gray-500 m-0">Active Listings</p>
+          </div>
+          <div className="rounded-xl p-3" style={{ backgroundColor: "#E6F7F4" }}>
+            <p className="text-xl font-extrabold m-0" style={{ color: C.success }}>100%</p>
+            <p className="text-[11px] font-semibold text-gray-500 m-0">Trust Score</p>
+          </div>
+        </div>
+
+        <button
+          onClick={onSignOut}
+          className="mt-6 w-full py-3 rounded-xl border-2 border-red-100 text-red-500 font-bold text-sm flex items-center justify-center gap-2 hover:bg-red-50 transition-colors bg-white cursor-pointer"
+        >
+          <LogOut size={16} /> Sign Out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Bottom navigation                                                  */
+/* ------------------------------------------------------------------ */
+function BottomNav({ tab, setTab }) {
+  const items = [
+    { id: "home", label: "Home", Icon: HomeIcon },
+    { id: "inbox", label: "Inbox", Icon: MessageCircle },
+    { id: "sell", label: "Sell", Icon: PlusSquare },
+    { id: "sales", label: "Sales", Icon: WalletIcon },
+    { id: "profile", label: "Profile", Icon: UserIcon },
+  ];
+  return (
+    <nav className="shrink-0 flex" style={{ backgroundColor: C.bgSoft, borderTop: "1px solid #2e3140" }}>
+      {items.map(({ id, label, Icon }) => {
+        const active = tab === id;
+        return (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className="flex-1 py-2.5 pb-3 flex flex-col items-center gap-0.5 transition-colors bg-transparent border-0 cursor-pointer"
+            style={{ color: active ? C.primary : "#6b7280" }}
+          >
+            <Icon size={21} />
+            <span className="text-[10px] font-bold">{label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Root App                                                           */
+/* ------------------------------------------------------------------ */
+function SentroApp() {
+  const [stage, setStage] = useState("signin"); // signin ⇄ signup → onboarding → app
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+
+  const [tab, setTab] = useState("home");
+  const [listings, setListings] = useState(SEED_LISTINGS);
+  const [conversations, setConversations] = useState(SEED_CONVERSATIONS);
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [activeChatId, setActiveChatId] = useState(null);
+  const [checkoutListing, setCheckoutListing] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [toast, setToast] = useState(null);
+  const idRef = useRef(1000);
+
+  const handleCreated = (u) => { setUser(u); setStage("onboarding"); };
+  const handleProfileDone = (p) => { setProfile(p); setStage("app"); };
+  const handleSignedIn = (email) => {
+    setUser({ uid: "uid_" + Math.random().toString(36).slice(2, 10), email });
+    setProfile(MOCK_SIGNIN_PROFILE);
+    setStage("app");
+  };
+  const handleSignOut = () => {
+    setStage("signin"); setUser(null); setProfile(null);
+    setTab("home"); setSelectedListing(null); setActiveChatId(null);
+  };
+
+  const handleBuyNow = (listing) => setCheckoutListing(listing);
+  const handleCheckoutComplete = (txn) => {
+    if (!txn) return;
+    setTransactions((ts) => [txn, ...ts]);
+  };
+  const handleConfirmHandover = (txnId) => {
+    const txn = transactions.find((t) => t.id === txnId);
+    if (!txn || txn.status === "completed") return;
+    setTransactions((ts) => ts.map((t) => (t.id === txnId ? { ...t, status: "completed" } : t)));
+    setToast(`Funds of ₱${txn.netEarnings.toLocaleString()} are being transferred to your GCash.`);
+    setTimeout(() => setToast(null), 3800);
+  };
+
+  const handlePost = (item) => {
+    idRef.current += 1;
+    setListings((ls) => [
+      { ...item, id: idRef.current, seller: profile.fullName, verified: true, emoji: (CAT_STYLE[item.category] || {}).emoji },
+      ...ls,
+    ]);
+    setTimeout(() => setTab("home"), 1500);
+  };
+
+  const now = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+  const handleMessageSeller = (listing) => {
+    const existing = conversations.find((c) => c.name === listing.seller && c.item === listing.title);
+    let chatId;
+    if (existing) {
+      chatId = existing.id;
+    } else {
+      idRef.current += 1;
+      chatId = idRef.current;
+      const colors = ["#8b5cf6", "#249689", "#f59e0b", "#ec4899", "#3b82f6"];
+      setConversations((cs) => [
+        {
+          id: chatId,
+          name: listing.seller,
+          item: listing.title,
+          avatar: listing.seller.split(" ").map((w) => w[0]).slice(0, 2).join(""),
+          color: colors[chatId % colors.length],
+          messages: [{ id: 1, from: "them", text: `Hi! Thanks for your interest in "${listing.title}". How can I help?`, time: now() }],
+        },
+        ...cs,
+      ]);
+    }
+    setSelectedListing(null);
+    setActiveChatId(chatId);
+    setTab("inbox");
+  };
+
+  const handleSend = (chatId, text) => {
+    setConversations((cs) =>
+      cs.map((c) =>
+        c.id === chatId
+          ? { ...c, messages: [...c.messages, { id: c.messages.length + 1 + Math.random(), from: "me", text, time: now() }] }
+          : c
+      )
+    );
+    setTimeout(() => {
+      const reply = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
+      setConversations((cs) =>
+        cs.map((c) =>
+          c.id === chatId
+            ? { ...c, messages: [...c.messages, { id: c.messages.length + 1 + Math.random(), from: "them", text: reply, time: now() }] }
+            : c
+        )
+      );
+    }, 1400);
+  };
+
+  if (stage === "signin") return <SignInScreen onSignedIn={handleSignedIn} onSwitchToSignUp={() => setStage("signup")} />;
+  if (stage === "signup") return <SignUpScreen onCreated={handleCreated} onSwitchToSignIn={() => setStage("signin")} />;
+  if (stage === "onboarding") return <ProfileSetupScreen user={user} onComplete={handleProfileDone} />;
+
+  const activeChat = conversations.find((c) => c.id === activeChatId);
+  const myListings = listings.filter((l) => l.seller === profile.fullName);
+
+  return (
+    <div className="flex flex-col h-screen" style={{ backgroundColor: C.bg }}>
+      <div className="flex-1 overflow-y-auto max-w-3xl w-full mx-auto">
+        {selectedListing ? (
+          <ListingDetail
+            listing={selectedListing}
+            isOwn={selectedListing.seller === profile.fullName}
+            onBack={() => setSelectedListing(null)}
+            onMessage={() => handleMessageSeller(selectedListing)}
+            onBuyNow={() => handleBuyNow(selectedListing)}
+          />
+        ) : tab === "home" ? (
+          <HomeScreen listings={listings} onOpen={setSelectedListing} />
+        ) : tab === "inbox" ? (
+          activeChat ? (
+            <ChatThread conversation={activeChat} onBack={() => setActiveChatId(null)} onSend={handleSend} />
+          ) : (
+            <InboxScreen conversations={conversations} onOpen={setActiveChatId} />
+          )
+        ) : tab === "sell" ? (
+          <SellScreen onPost={handlePost} />
+        ) : tab === "sales" ? (
+          <SellerDashboard transactions={transactions} onConfirm={handleConfirmHandover} />
+        ) : (
+          <ProfileScreen user={user} profile={profile} myListings={myListings} onSignOut={handleSignOut} />
+        )}
+      </div>
+
+      {(!activeChat || tab !== "inbox") && <BottomNav tab={tab} setTab={(t) => { setTab(t); setSelectedListing(null); setActiveChatId(null); }} />}
+
+      {checkoutListing && (
+        <CheckoutModal
+          listing={checkoutListing}
+          sellerName={profile.fullName}
+          onClose={() => setCheckoutListing(null)}
+          onComplete={handleCheckoutComplete}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] px-4 w-full max-w-sm">
+          <div
+            className="rounded-xl shadow-2xl px-4 py-3.5 flex items-center gap-3 text-sm font-semibold"
+            style={{ backgroundColor: "#fff", border: `2px solid ${C.green}`, color: C.greenText }}
+          >
+            <CheckCircle2 size={18} style={{ color: C.green }} className="shrink-0" />
+            <span>{toast}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<SentroApp />);
+</script>
+</body>
+</html>
