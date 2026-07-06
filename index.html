@@ -254,14 +254,14 @@ function PrimaryButton({ loading, success, children, successLabel, ...props }) {
   );
 }
 
-function Logo({ size = 44 }) {
+function Logo({ size = 120 }) {
   return (
-    <div
-      className="rounded-2xl flex items-center justify-center font-black text-white shadow-lg mx-auto"
-      style={{ width: size, height: size, background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`, fontSize: size * 0.5 }}
-    >
-      S
-    </div>
+    <img
+      src="logosentro_1.png"
+      alt="Sentro Logo"
+      className="mx-auto object-contain"
+      style={{ width: size, height: size }}
+    />
   );
 }
 
